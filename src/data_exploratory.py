@@ -3,147 +3,85 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class DataExploratory:
-    def __init__(self):
-        print("Explortory Analysis of this data is starting...")
+    def __init__(self, train, test):
+        self.train = train
+        self.test = test
+        self.data = pd.concat([train, test], ignore_index=True)
 
-    def _get_missing_values(self, data):
-        features_with_missing_values = [features for features in data.columns if data[features].isnull().sum()>0]
+    def get_missing_values(self):
+        features_with_missing_values = [features for features in self.data.columns if
+                                        self.data[features].isnull().sum()>0]
         for features in features_with_missing_values:
-            print(features, np.round(data[features].isnull().sum(), 4), "missing Values")
-            na_features_data = data[features_with_missing_values]
-            return na_features_data
-        else:
-            print("There are no missing values in this dataset")
+            #print(features, np.round(self.data[features].isnull().sum(), 4), "missing Values")
+            na_features_data = self.data[features_with_missing_values]
+        return na_features_data
 
-    def _get_missing_values_with_dependent(self, data):
-        na_features = self._get_missing_values(data)
-        for feature in na_features:
-            data[feature] = np.where(data[feature].isnull(), 1, 0)
-            data.groupby(feature)['SalePrice'].median().plot.bar()
-            plt.title(feature)
-            plt.show()
-
-    def _get_numerical_features(self, data):
-        numerical_features = [features for features in data.columns if data[features].dtype != 'O']
-        print('The number of numerical features are:', len(numerical_features))
-        numerical_features_data = data[numerical_features]
+    def get_numerical_features(self):
+        numerical_features = [features for features in self.data.columns if self.data[features].dtype != 'O']
+        numerical_features_data = self.data[numerical_features]
         return numerical_features_data
 
-    def _get_year_features(self, data):
-        numerical_data = self._get_numerical_features(data)
+    def get_year_features(self):
+        numerical_data = self.get_numerical_features()
         year_feature = [feature for feature in numerical_data if 'Yr' in feature or
                         'Year' in feature]
-        print('The number of year features are:', len(year_feature))
-        year_features_data = data[year_feature]
+
+        year_features_data = self.data[year_feature]
         return year_features_data
 
-    def plot_year_with_dependent_feature(self, data):
-        year_feature = self._get_year_features(data)
-        for feature in year_feature:
-            data.groupby(feature)['SalePrice'].median().plot()
-            plt.title(feature)
-            plt.show()
-
-    def _obtain_discrete_variables(self, data):
-        numerical_features = self._get_numerical_features(data)
-        year_features = self._get_year_features(data)
+    def obtain_discrete_features(self):
+        numerical_features = self.get_numerical_features()
+        year_features = self.get_year_features()
         discrete_features = [feature for feature in numerical_features if
-                             len(data[feature].unique())<25 and feature not in
-                             year_features + ['Id']]
-        print('Discrete features count: {}'.format(len(discrete_features)))
-        discrete_features_data = data[discrete_features]
+                             len(self.data[feature].unique())<25 and feature not in year_features]
+        discrete_features_data = self.data[discrete_features]
         return discrete_features_data
 
-    def plot_discrete_dependent_feature(self, data):
-        discrete_features = self._obtain_discrete_variables(data)
-        for feature in discrete_features:
-            data.groupby(feature)['SalePrice'].median().plot.bar()
-            plt.xlabel(feature)
-            plt.ylabel('SalePrice')
-            plt.title(feature)
-            plt.show()
-
-    def _obtain_continous_features(self, data):
-        numerical_features = self._get_numerical_features(data)
-        discrete_features = self._obtain_discrete_variables(data)
-        year_feature = self._get_year_features(data)
+    def obtain_continous_features(self):
+        numerical_features = self.get_numerical_features()
+        discrete_features = self.obtain_discrete_features()
+        year_feature = self.get_year_features()
         continous_feature = [feature for feature in numerical_features if feature
-                             not in discrete_features + year_feature + ['Id']]
-        print("continous feature count {}".format(len(continous_feature)))
-        continous_features_data = data[continous_feature]
+                             not in discrete_features + year_feature]
+        continous_features_data = self.data[continous_feature]
         return continous_features_data
 
-    def plot_continous_and_dependent_feature(self, data):
-        continous_feature = self._obtain_continous_features(data)
-        for feature in continous_feature:
-            data.groupby(feature)['SalePrice'].mean().hist(bins=25)
-            plt.xlabel(feature)
-            plt.ylabel('SalePrice')
+    def get_outliers_discrete(self):
+        discrete_features = self.obtain_discrete_features()
+        for feature in discrete_features:
+            self.data[feature] = np.log(self.data[feature])
+            self.data.boxplot(column=feature)
+            plt.ylabel(feature)
             plt.title(feature)
             plt.show()
 
-    def _get_outliers_discrete(self, data):
-        discrete_features = self._obtain_discrete_variables(data)
-        for feature in discrete_features:
-                data[feature]= np.log(data[feature])
-                data.boxplot(column=feature)
-                plt.ylabel(feature)
-                plt.title(feature)
-                plt.show()
-
-    def _get_outliers_continous(self, data):
-        continous_features = self._obtain_continous_features(data)
+    def get_outliers_continous(self):
+        continous_features = self.obtain_continous_features()
         for feature in continous_features:
-                data[feature] = np.log(data[feature])
-                data.boxplot(column=feature)
-                plt.ylabel(feature)
-                plt.title(feature)
-                plt.show()
+            self.data[feature] = np.log(self.data[feature])
+            self.data.boxplot(column=feature)
+            plt.ylabel(feature)
+            plt.title(feature)
+            plt.show()
 
-    def _get_categorical_variables(self, data):
-        categorical_features = [feature for feature in data.columns if
-                                data[feature].dtypes=='O']
-        print('Number of categorical fetures: {}'.format(len(categorical_features)))
-        categorical_features_data = data[categorical_features]
+    def get_categorical_features(self):
+        categorical_features = [feature for feature in self.data.columns if
+                                self.data[feature].dtypes == 'O']
+        categorical_features_data = self.data[categorical_features]
         return categorical_features_data
 
-    def unique_values_categorical(self, data):
-        categorical_features = self._get_categorical_variables(data)
-        for feature in categorical_features:
-            print('The feature {} and the number of unique categories are {}'
-                  .format(feature,len(data[feature].unique())))
+    def get_missing_categorical(self):
+        nan_categorical = [feature for feature in self.data.columns if
+                           self.data[feature].isnull().sum() > 0 and self.data[feature].dtypes == 'O']
+        nan_categorical_data = self.data[nan_categorical]
+        return nan_categorical_data
 
-    def plot_categorical_dependent_feature(self, data):
-        categorical_features = self._get_categorical_variables(data)
-        for feature in categorical_features:
-            data.groupby(feature)['SalePrice'].median().plot.bar()
-            plt.xlabel(feature)
-            plt.ylabel('SalePrice')
-            plt.title(feature)
-            plt.show()
+    def get_missing_numerical(self):
+        missing_numerical = [feature for feature in self.data.columns if
+                             self.data[feature].isnull().sum() > 0 and self.data[feature].dtypes != 'O']
 
-    def _get_missing_categorical(self, data):
-        missing_categorical = [feature for feature in data.columns if
-                        data[feature].isnull().sum() > 0 and data[feature].dtypes == 'O']
-        for feature in missing_categorical:
-            print('{}: {} missing values'.format(feature, np.round(data[feature].isnull().sum(), 4)))
-        na_categorical_features_data = data[missing_categorical]
-        return na_categorical_features_data
-
-    def _get_missing_numerical(self,data):
-        missing_numerical = [feature for feature in data.columns if
-                             data[feature].isnull().sum()>0 and data[feature].dtypes!='O']
-        for feature in missing_numerical:
-            print('{}: {} missing value'.format(feature, np.round(data[feature].isnull().sum(), 4)))
-            na_numerical_features_data = data[missing_numerical]
-        return na_numerical_features_data
-
-
-
-
-
-
-
+        nan_numerical_data = self.data[missing_numerical]
+        return nan_numerical_data
 
 
 
