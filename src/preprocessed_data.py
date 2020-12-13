@@ -12,13 +12,13 @@ class PreprocessedData:
         self.feature_engineering = FeatureEngineering(train, test, id_column, y_column_name)
         self.feature_selection = FeatureSelection(train, test, id_column, y_column_name)
 
-    def preprocess_my_data(self):
+    def preprocess_my_data(self, num_of_features_to_select):
         self.data = self.feature_engineering.fill_na_categorical()
         self.data = self.feature_engineering.fill_na_numerical()
         self.data = self.feature_engineering.input_rare_categorical()
         self.data = self.feature_engineering.label_encoder()
         self.data = self.feature_engineering.get_scale_features()
-        self.data = self.feature_selection.perform_extra_regressor_feature_selection()
+        self.data = self.feature_selection.perform_feature_selection(num_of_features_to_select)
         return self.data
 
 

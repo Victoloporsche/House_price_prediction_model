@@ -3,9 +3,9 @@ from model_optimizer import ModelOptimizer
 
 
 class Main:
-    def __init__(self, train, test, id_column, y_column_name):
+    def __init__(self, train, test, id_column, y_column_name, num_of_features_to_select):
         self.exploratory = DataExploratory(train, test)
-        self.model = ModelOptimizer(train, test, id_column, y_column_name)
+        self.model = ModelOptimizer(train, test, id_column, y_column_name, num_of_features_to_select)
 
     def check_missing_values(self):
         return self.exploratory.get_missing_values()

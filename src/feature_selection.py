@@ -23,14 +23,14 @@ class FeatureSelection:
         self.data = self.feature_engineering.get_scale_features()
         return self.data
 
-    def perform_extra_regressor_feature_selection(self):
+    def perform_feature_selection(self, num_of_features_to_select):
         data = self.preprocess_my_data()
         train_data = data[:self.number_of_train]
         ytrain = train_data[[self.y_column_name]]
         xtrain = train_data.drop([self.id_column, self.y_column_name], axis=1)
         feature_sel_model = ExtraTreesRegressor().fit(xtrain, ytrain)
         feat_importances = pd.Series(feature_sel_model.feature_importances_, index=xtrain.columns)
-        selected_features = feat_importances.nlargest(20)
+        selected_features = feat_importances.nlargest(num_of_features_to_select)
         selected_features_df = selected_features.to_frame()
         selected_features_list = selected_features_df.index.tolist()
         data = self.data[selected_features_list]

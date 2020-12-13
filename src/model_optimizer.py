@@ -7,7 +7,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RandomizedSearchCV
 
 class ModelOptimizer:
-    def __init__(self, train, test, id_column, y_column_name):
+    def __init__(self, train, test, id_column, y_column_name, num_of_features_to_select):
         self.train = train
         self.number_of_train = train.shape[0]
         self.y_column_name = y_column_name
@@ -15,7 +15,7 @@ class ModelOptimizer:
         self.test = test
         self.data = pd.concat([train, test], ignore_index=True)
         self.processed_data = PreprocessedData(train, test, id_column, y_column_name)
-        self.data = self.processed_data.preprocess_my_data()
+        self.data = self.processed_data.preprocess_my_data(num_of_features_to_select)
         self.train_data = self.data[:self.number_of_train]
         self.ytrain = self.train_data[[self.y_column_name]]
         self.xtrain = self.train_data.drop([self.id_column, self.y_column_name], axis=1)
